@@ -2,7 +2,7 @@
 /**
  * Plugin Name: AQM Duplicate Post
  * Description: Adds a "Duplicate" link to the Posts and Pages list tables. Copies content, taxonomies and meta into a new DRAFT. Converted from a must-use plugin on 8 Sep 2026 so it updates itself from GitHub releases like every other AQM plugin.
- * Version:     1.1.0
+ * Version:     1.2.0
  * Author:      A. Q. Mufti
  * Plugin URI:  https://github.com/AQMufti/aqm-duplicate-post
  * License:     GPL-2.0-or-later
@@ -58,7 +58,7 @@ defined( 'ABSPATH' ) || exit;
  * everything below would be declared twice and the site would fatal. Bail out
  * instead, and say why on the Plugins screen.
  */
-if ( function_exists( 'aqm_dp_row_action' ) ) {
+if ( file_exists( ( defined( 'WPMU_PLUGIN_DIR' ) ? WPMU_PLUGIN_DIR : WP_CONTENT_DIR . '/mu-plugins' ) . '/aqm-duplicate-post.php' ) ) {
 	add_action(
 		'admin_notices',
 		function () {
@@ -70,8 +70,38 @@ if ( function_exists( 'aqm_dp_row_action' ) ) {
 	return;
 }
 
+/*
+ * Belt and braces. The mu-plugin file is gone, but something else has already
+ * declared our symbols - so loading on would be a fatal redeclare. Bail out
+ * quietly and report WHERE it came from, using reflection, rather than blaming
+ * a file that is not there.
+ *
+ * Version 1.1.0 tested only function_exists( 'aqm_dp_row_action' ), which is a
+ * PROXY for "the old file is still present" rather than the thing itself. When
+ * the four files were deleted on 8 Sep 2026 the notices kept firing, because
+ * the proxy was answering a different question. Test the actual condition.
+ */
+if ( function_exists( 'aqm_dp_row_action' ) ) {
+	add_action(
+		'admin_notices',
+		function () {
+			$where = 'an unknown file';
+			try {
+				$r     = new ReflectionFunction( 'aqm_dp_row_action' );
+				$where = '<code>' . esc_html( str_replace( ABSPATH, '', (string) $r->getFileName() ) ) . '</code>';
+			} catch ( Exception $e ) {
+				unset( $e );
+			}
+			echo '<div class="notice notice-warning"><p><strong>AQM Duplicate Post</strong> stood down to avoid a duplicate declaration. '
+				. 'Something already defined <code>aqm_dp_row_action</code>, loaded from ' . $where . '. '
+				. 'No must-use copy is present, so this is not the old file.</p></div>';
+		}
+	);
+	return;
+}
+
 define( 'AQM_DP_FILE', __FILE__ );
-define( 'AQM_DP_VERSION', '1.1.0' );
+define( 'AQM_DP_VERSION', '1.2.0' );
 define( 'AQM_DP_GITHUB_REPO', 'AQMufti/aqm-duplicate-post' );
 
 // Shared GitHub-release updater - identical mechanism in every AQM plugin.
