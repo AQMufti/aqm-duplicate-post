@@ -2,7 +2,7 @@
 /**
  * Plugin Name: AQM Duplicate Post
  * Description: Adds a "Duplicate" link to the Posts and Pages list tables. Copies content, taxonomies and meta into a new DRAFT. Converted from a must-use plugin on 8 Sep 2026 so it updates itself from GitHub releases like every other AQM plugin.
- * Version:     1.2.0
+ * Version:     1.3.0
  * Author:      A. Q. Mufti
  * Plugin URI:  https://github.com/AQMufti/aqm-duplicate-post
  * License:     GPL-2.0-or-later
@@ -49,6 +49,30 @@
  */
 
 defined( 'ABSPATH' ) || exit;
+
+/*
+ * THE UPDATER IS CONSTRUCTED FIRST, DELIBERATELY.
+ *
+ * In 1.1.0 and 1.2.0 the conversion guard ran BEFORE this block and returned
+ * early, so AQM_Updater was never constructed - which removed the "Check for
+ * updates" link from this plugin's row and left no way to update it except a
+ * manual zip upload. A guard that disables the thing that would have fixed the
+ * guard is a trap. Registering the updater first costs nothing (it only adds
+ * filters) and keeps the plugin repairable however badly the rest goes wrong.
+ */
+define( 'AQM_DP_FILE', __FILE__ );
+define( 'AQM_DP_VERSION', '1.3.0' );
+define( 'AQM_DP_GITHUB_REPO', 'AQMufti/aqm-duplicate-post' );
+
+// Shared GitHub-release updater - identical mechanism in every AQM plugin.
+require_once __DIR__ . '/aqm-updater.php';
+new AQM_Updater(
+	__FILE__,
+	AQM_DP_VERSION,
+	AQM_DP_GITHUB_REPO,
+	'AQM Duplicate Post',
+	'Adds a Duplicate link to the Posts and Pages list tables, copying into a new draft.'
+);
 
 /*
  * CONVERSION GUARD - remove after the mu-plugin copy is gone.
@@ -99,20 +123,6 @@ if ( function_exists( 'aqm_dp_row_action' ) ) {
 	);
 	return;
 }
-
-define( 'AQM_DP_FILE', __FILE__ );
-define( 'AQM_DP_VERSION', '1.2.0' );
-define( 'AQM_DP_GITHUB_REPO', 'AQMufti/aqm-duplicate-post' );
-
-// Shared GitHub-release updater - identical mechanism in every AQM plugin.
-require_once __DIR__ . '/aqm-updater.php';
-new AQM_Updater(
-	__FILE__,
-	AQM_DP_VERSION,
-	AQM_DP_GITHUB_REPO,
-	'AQM Duplicate Post',
-	'Adds a Duplicate link to the Posts and Pages list tables, copying into a new draft.'
-);
 
 /**
  * Meta keys never carried to the copy.
