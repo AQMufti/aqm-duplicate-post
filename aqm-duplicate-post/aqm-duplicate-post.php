@@ -2,7 +2,7 @@
 /**
  * Plugin Name: AQM Duplicate Post
  * Description: Adds a "Duplicate" link to the Posts and Pages list tables. Copies content, taxonomies and meta into a new DRAFT. Converted from a must-use plugin on 8 Sep 2026 so it updates itself from GitHub releases like every other AQM plugin.
- * Version:     1.3.0
+ * Version:     1.4.0
  * Author:      A. Q. Mufti
  * Plugin URI:  https://github.com/AQMufti/aqm-duplicate-post
  * License:     GPL-2.0-or-later
@@ -61,7 +61,7 @@ defined( 'ABSPATH' ) || exit;
  * filters) and keeps the plugin repairable however badly the rest goes wrong.
  */
 define( 'AQM_DP_FILE', __FILE__ );
-define( 'AQM_DP_VERSION', '1.3.0' );
+define( 'AQM_DP_VERSION', '1.4.0' );
 define( 'AQM_DP_GITHUB_REPO', 'AQMufti/aqm-duplicate-post' );
 
 // Shared GitHub-release updater - identical mechanism in every AQM plugin.
@@ -75,54 +75,31 @@ new AQM_Updater(
 );
 
 /*
- * CONVERSION GUARD - remove after the mu-plugin copy is gone.
+ * THE CONVERSION GUARDS ARE GONE - 8 Sep 2026, and they are not coming back.
  *
- * This was a must-use plugin until 8 Sep 2026. mu-plugins load BEFORE regular
- * plugins, so if the old mu-plugins/aqm-duplicate-post.php is still on the server
- * everything below would be declared twice and the site would fatal. Bail out
- * instead, and say why on the Plugins screen.
+ * This file carried two of them: one testing whether the old must-use copy was
+ * still on disk, and one testing function_exists( 'aqm_dp_row_action' ) before
+ * loading on. The second could NEVER be false, and it broke the plugin.
+ *
+ * PHP hoists unconditional top-level function and class declarations when a
+ * file is included - they exist before the file's first statement runs. So by
+ * the time that guard was evaluated, aqm_dp_row_action was already
+ * defined BY THIS FILE, a few lines below. The guard returned every single
+ * time, and nothing after it ever executed: no add_action, no add_shortcode,
+ * no admin screen. The functions existed; none of them were ever hooked.
+ *
+ * That is why the RECO brokerage line was missing from the site, and why the
+ * reviews stopped rendering, from the moment these plugins were converted.
+ *
+ * The file_exists() guard went too, because it cannot help either: if a
+ * must-use copy declared these same symbols, PHP would fatal on the redeclare
+ * as this file was included, long before any runtime check could return. The
+ * only guard that would work is wrapping the whole file in
+ * if ( ! function_exists( 'aqm_dp_row_action' ) ) - which is what AQM Form Spam
+ * Guard does. The must-use copies are deleted and archived, so nothing here
+ * needs guarding at all.
  */
-if ( file_exists( ( defined( 'WPMU_PLUGIN_DIR' ) ? WPMU_PLUGIN_DIR : WP_CONTENT_DIR . '/mu-plugins' ) . '/aqm-duplicate-post.php' ) ) {
-	add_action(
-		'admin_notices',
-		function () {
-			echo '<div class="notice notice-error"><p><strong>AQM Duplicate Post</strong> is not running. '
-				. 'The old must-use copy at <code>wp-content/mu-plugins/aqm-duplicate-post.php</code> is still on the server '
-				. 'and loads first. Delete that file, then reload this page.</p></div>';
-		}
-	);
-	return;
-}
 
-/*
- * Belt and braces. The mu-plugin file is gone, but something else has already
- * declared our symbols - so loading on would be a fatal redeclare. Bail out
- * quietly and report WHERE it came from, using reflection, rather than blaming
- * a file that is not there.
- *
- * Version 1.1.0 tested only function_exists( 'aqm_dp_row_action' ), which is a
- * PROXY for "the old file is still present" rather than the thing itself. When
- * the four files were deleted on 8 Sep 2026 the notices kept firing, because
- * the proxy was answering a different question. Test the actual condition.
- */
-if ( function_exists( 'aqm_dp_row_action' ) ) {
-	add_action(
-		'admin_notices',
-		function () {
-			$where = 'an unknown file';
-			try {
-				$r     = new ReflectionFunction( 'aqm_dp_row_action' );
-				$where = '<code>' . esc_html( str_replace( ABSPATH, '', (string) $r->getFileName() ) ) . '</code>';
-			} catch ( Exception $e ) {
-				unset( $e );
-			}
-			echo '<div class="notice notice-warning"><p><strong>AQM Duplicate Post</strong> stood down to avoid a duplicate declaration. '
-				. 'Something already defined <code>aqm_dp_row_action</code>, loaded from ' . $where . '. '
-				. 'No must-use copy is present, so this is not the old file.</p></div>';
-		}
-	);
-	return;
-}
 
 /**
  * Meta keys never carried to the copy.
