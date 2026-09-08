@@ -2,7 +2,7 @@
 /**
  * Plugin Name: AQM Duplicate Post
  * Description: Adds a "Duplicate" link to the Posts and Pages list tables. Copies content, taxonomies and meta into a new DRAFT. Converted from a must-use plugin on 8 Sep 2026 so it updates itself from GitHub releases like every other AQM plugin.
- * Version:     1.4.0
+ * Version:     1.5.0
  * Author:      A. Q. Mufti
  * Plugin URI:  https://github.com/AQMufti/aqm-duplicate-post
  * License:     GPL-2.0-or-later
@@ -61,7 +61,7 @@ defined( 'ABSPATH' ) || exit;
  * filters) and keeps the plugin repairable however badly the rest goes wrong.
  */
 define( 'AQM_DP_FILE', __FILE__ );
-define( 'AQM_DP_VERSION', '1.4.0' );
+define( 'AQM_DP_VERSION', '1.5.0' );
 define( 'AQM_DP_GITHUB_REPO', 'AQMufti/aqm-duplicate-post' );
 
 // Shared GitHub-release updater - identical mechanism in every AQM plugin.
